@@ -15,8 +15,8 @@
 #include <epd.h>
 const int led =  D7;                           //user led
 
-const int offset[10] = {0,20,0,0,0,0,0,0,0,0};
-const int width[10] = {120,100,120,120,130,120,120,120,120,120};
+const int offset[11] = {0,20,0,0,0,0,0,0,0,0,0};
+const int width[11] = {120,100,120,120,130,120,120,120,120,120,120};
 
 void setup(void)
 {
@@ -38,7 +38,7 @@ void setup(void)
   epd_udpate();
   Time.zone(-5);
   Particle.subscribe("eWeather_today_dee0512", updateTemperature);
-  // updateTemp(9);
+  // updateTemp(-9);
 
   // epd_disp_string("MHERST", 230,100);
 
@@ -53,17 +53,25 @@ void updateTemperature(const char *event, const char *data){
     epd_disp_bitmap("amherst.BMP", 240, 100);
     time_t time = Time.now();
     epd_disp_string(Time.format(time, "%I:%M %p"), 250,140);
-    epd_disp_string(Time.format(time, "%a %d %b"), 235,170);
+    epd_disp_string(Time.format(time, "%a %d %b"), 245,170);
     int toalWidth = 0;
     for(int i = 0; i< tempString.length(); i++){
       int number = tempString.charAt(i) - '0';
-      toalWidth += width[number];
+      if(tempString.charAt(i) == '-'){
+        toalWidth += width[10];
+      }else{
+        toalWidth += width[number];
+      }
     }
     int currentWidth = 0;
     for(int i = 0; i< tempString.length(); i++){
       int number = tempString.charAt(i) - '0';
       int currentOffset = (-1 * (toalWidth)/2)  + currentWidth;
-      currentWidth += width[number];
+      if(tempString.charAt(i) == '-'){
+          currentWidth += width[10];
+      }else{
+          currentWidth += width[number];
+      }
       drawTemp(tempString.charAt(i),currentOffset);
     }
     epd_disp_bitmap("degree.BMP", 320 + (toalWidth/2), 380);
@@ -77,7 +85,15 @@ void drawTemp (char digit, int characterOffset){
   int number = digit - '0';
   String imageString(digit);
   imageString = imageString + ".BMP";
-  epd_disp_bitmap(imageString, 320 + offset[number] + characterOffset, 250);
+  int numberOffset,yOffset;
+  if(imageString == "-.BMP"){
+    numberOffset =offset[10];
+    yOffset = 75;
+  }else{
+    numberOffset =offset[number];
+    yOffset = 0;
+  }
+  epd_disp_bitmap(imageString, 320 + numberOffset + characterOffset, 250 + yOffset);
 }
 
 void updateTemp(int temp){
@@ -86,17 +102,25 @@ void updateTemp(int temp){
   epd_disp_bitmap("amherst.BMP", 240, 100);
   time_t time = Time.now();
   epd_disp_string(Time.format(time, "%I:%M %p"), 250,140);
-  epd_disp_string(Time.format(time, "%a %d %b"), 235,170);
+  epd_disp_string(Time.format(time, "%a %d %b"), 245,170);
   int toalWidth = 0;
   for(int i = 0; i< tempString.length(); i++){
     int number = tempString.charAt(i) - '0';
-    toalWidth += width[number];
+    if(tempString.charAt(i) == '-'){
+      toalWidth += width[10];
+    }else{
+      toalWidth += width[number];
+    }
   }
   int currentWidth = 0;
   for(int i = 0; i< tempString.length(); i++){
     int number = tempString.charAt(i) - '0';
     int currentOffset = (-1 * (toalWidth)/2)  + currentWidth;
-    currentWidth += width[number];
+    if(tempString.charAt(i) == '-'){
+        currentWidth += width[10];
+    }else{
+        currentWidth += width[number];
+    }
     drawTemp(tempString.charAt(i),currentOffset);
   }
   epd_disp_bitmap("degree.BMP", 320 + (toalWidth/2), 380);
